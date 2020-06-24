@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
 from mpl_toolkits.basemap import Basemap
 import matplotlib.pyplot as plt
 import matplotlib.animation as Animation

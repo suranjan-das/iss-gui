@@ -31,6 +31,25 @@ def get_position(time):
     return position
 
 
+def find_index(position, lons):
+
+    index = 0
+    pos = position
+    found = False
+    for i in range(len(lons) - 1):
+        if lons[i] <= pos[0] and lons[i + 1] > pos[0] and (not found):
+            index = i
+            found = True
+
+    if not found:
+        if pos[0] > lons[-1]:
+            index = len(lons)
+        else:
+            index = -1
+
+    return index
+
+
 def get_path(resolution=0.5):
     """returns list of longitude and latitudes
     for the iss path to draw iss path
