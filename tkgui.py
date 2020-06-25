@@ -21,7 +21,7 @@ lons, lats = x[0], x[1]
 fig = Figure()
 ax = fig.add_subplot(111)
 fig.subplots_adjust(left=.01, bottom=.01, right=.99,
-                    top=.99, wspace=0, hspace=0)
+                    top=.92, wspace=0, hspace=0)
 
 map = Basemap(ax=ax)
 
@@ -39,10 +39,13 @@ def animate(i):
 
     path_updated = False
     ax.clear()
+    ax.set_title("ISS live position")
     time = datetime.datetime.utcnow()
     t = coord.get_position(time)
     index = coord.find_index(t, lons)
     draw_map(index, t, time)
+    ax.legend(bbox_to_anchor=(0, 1.02, 1, .102), loc=3,
+              ncol=2, borderaxespad=0)
 
     if t[0] < -175 and not path_updated:
         update_path()
@@ -62,10 +65,10 @@ def plot_trajectory(index):
         lonB, latB = lons[index:], lats[index:]
 
     x, y = map(lonA, latA)
-    map.plot(x, y, marker=None, color='crimson')
+    map.plot(x, y, marker=None, color='crimson', label="past")
 
     p, q = map(lonB, latB)
-    map.plot(p, q, marker=None, color='navy')
+    map.plot(p, q, marker=None, color='navy', label="future")
 
 
 def draw_map(index, position, time):
@@ -94,6 +97,15 @@ class projIss(tk.Tk):
         container.pack(side="top", fill="both", expand=True)
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
+
+        menubar = tk.Menu(container)
+        filemenu = tk.Menu(menubar, tearoff=0)
+        filemenu.add_command(label="ISS live graph", command=lambda: "to do")
+        filemenu.add_separator()
+        filemenu.add_command(label="Exit", command=quit)
+        menubar.add_cascade(label="Options", menu=filemenu)
+
+        tk.Tk.config(self, menu=menubar)
 
         self.frames = {}
 
@@ -145,5 +157,6 @@ class PageOne(tk.Frame):
 
 
 app = projIss()
+app.geometry("800x500")
 ani = Animation.FuncAnimation(fig, animate, interval=10000)
 app.mainloop()
