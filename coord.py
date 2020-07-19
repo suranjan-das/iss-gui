@@ -8,11 +8,11 @@ lons, lats = list(), list()
 
 now = datetime.datetime.utcnow()
 # fetch iss tle data
-# req_tle = requests.get('https://www.celestrak.com/NORAD/elements/stations.txt')
-# response = req_tle.text
-# line1, line2, line3 = response.split('\n')[0], response.split('\n')[
-#     1], response.split('\n')[2]
-line1, line2, line3 = "ISS (ZARYA)", "1 25544U 98067A   20175.48257715  .00000141  00000-0  10586-4 0  9994", "2 25544  51.6448 317.3056 0002550  78.0964 353.5204 15.49453541232999"
+req_tle = requests.get('https://www.celestrak.com/NORAD/elements/stations.txt')
+response = req_tle.text
+line1, line2, line3 = response.split('\n')[0], response.split('\n')[
+    1], response.split('\n')[2]
+# line1, line2, line3 = "ISS (ZARYA)", "1 25544U 98067A   20175.48257715  .00000141  00000-0  10586-4 0  9994", "2 25544  51.6448 317.3056 0002550  78.0964 353.5204 15.49453541232999"
 
 # read tle data
 iss = ephem.readtle(line1, line2, line3)
