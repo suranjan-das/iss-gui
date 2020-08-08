@@ -14,6 +14,8 @@ from tkcalendar import *
 import datetime
 import coord
 
+theme = 'default'
+
 # get iss path coordinates
 x = coord.get_path(resolution=.3)
 # save longitude and latitude in separate list variable
@@ -74,9 +76,23 @@ def plot_trajectory(index):
 
 def draw_map(index, position, time):
 
+    if theme == 'default':
+        map.drawmapboundary(fill_color='cadetblue')
+        map.fillcontinents(color='tan')
+    elif theme == 'coral':
+        map.drawmapboundary(fill_color='seagreen')
+        map.fillcontinents(color='coral')
+    elif theme == 'sienna':
+        map.drawmapboundary(fill_color='navy')
+        map.fillcontinents(color='sienna')
+    elif theme == 'peru':
+        map.drawmapboundary(fill_color='teal')
+        map.fillcontinents(color='peru')
+    elif theme == 'etopo':
+        map.etopo()
+    elif theme == 'shadedrelief':
+        map.shadedrelief()
     map.drawcoastlines()
-    map.drawmapboundary(fill_color='cadetblue')
-    map.fillcontinents(color='tan')
     # current time for drawing nightshade
     map.nightshade(time, alpha=0.2)
     plot_trajectory(index)
@@ -118,6 +134,23 @@ class projIss(tk.Tk):
         filemenu.add_command(label="Exit", command=ask_confirm)
         menubar.add_cascade(label="Options", menu=filemenu)
 
+        thememenu = tk.Menu(menubar, tearoff=0)
+        thememenu.add_command(label='Map', command='')
+        menubar.add_cascade(label='Style', menu=thememenu)
+
+        submenu = tk.Menu(thememenu, tearoff=0)
+        submenu.add_command(
+            label='default', command=lambda: self.change_theme('default'))
+        submenu.add_command(label='coral',
+                            command=lambda: self.change_theme('coral'))
+        submenu.add_command(
+            label='sienna', command=lambda: self.change_theme('sienna'))
+        submenu.add_command(
+            label='peru', command=lambda: self.change_theme('peru'))
+        submenu.add_command(
+            label='etopo', command=lambda: self.change_theme('etopo'))
+        thememenu.add_cascade(label='Theme', menu=submenu)
+
         tk.Tk.config(self, menu=menubar)
 
         self.frames = {}
@@ -136,6 +169,10 @@ class projIss(tk.Tk):
 
         frame = self.frames[cont]
         frame.tkraise()
+
+    def change_theme(self, name):
+        global theme
+        theme = name
 
 
 class StartPage(tk.Frame):
@@ -167,14 +204,15 @@ class PageOne(tk.Frame):
         self.columnconfigure(0, weight=1, uniform='x')
         self.columnconfigure(1, weight=2, uniform='x')
 
-        self.rowconfigure(0, weight=1)
+        self.rowconfigure(0, weight=12, uniform='y')
+        self.rowconfigure(1, weight=1, uniform='y')
 
         style = ttk.Style(parent)
         style.configure("Placeholder.TEntry",
                         foreground="grey")
 
         frame1 = tk.Frame(self, parent)
-        frame1.grid(row=0, column=0, sticky="nsew")
+        frame1.grid(row=0, column=0, rowspan=2, sticky="nsew")
 
         frame1.columnconfigure((0, 2, 3, 5), weight=1, uniform='y')
         frame1.columnconfigure((1, 4), weight=2, uniform='y')
@@ -188,7 +226,7 @@ class PageOne(tk.Frame):
         lbl_lat.grid(row=1, column=0, padx=5, sticky='w')
 
         entry_lat = PlaceholderEntry(
-            frame1, "0.000", style="TEntry", placeholder_style="Placeholder.TEntry")
+            frame1, "24.789778", style="TEntry", placeholder_style="Placeholder.TEntry")
         entry_lat.grid(row=1, column=1, padx=10, pady=5)
 
         lbl_degN = ttk.Label(frame1, text='\u00B0E')
@@ -198,7 +236,7 @@ class PageOne(tk.Frame):
         lbl_lon.grid(row=1, column=3, sticky='w')
 
         entry_lon = PlaceholderEntry(
-            frame1, "0.000", style="TEntry", placeholder_style="Placeholder.TEntry")
+            frame1, "87.912816", style="TEntry", placeholder_style="Placeholder.TEntry")
         entry_lon.grid(row=1, column=4, padx=10, pady=5)
 
         lbl_degE = ttk.Label(frame1, text='\u00B0N')
@@ -220,20 +258,9 @@ class PageOne(tk.Frame):
                       padx=5, pady=10, sticky='w')
 
         pass_choice = ttk.Combobox(frame1, width=10, state="readonly")
-        pass_choice['values'] = ['Visible', 'Daylight', 'Both']
+        pass_choice['values'] = ['visible', 'daylight', 'both']
         pass_choice.grid(row=3, column=2, columnspan=2)
         pass_choice.current(0)
-
-        lbl_dur = ttk.Label(frame1, text='Duration: ')
-        lbl_dur.grid(row=4, column=0, padx=5, pady=10,
-                     columnspan=2, sticky='w')
-
-        entry_dur = ttk.Entry(frame1)
-        entry_dur.grid(row=4, column=2)
-        entry_dur.insert("0", 15)
-
-        lbl_days = ttk.Label(frame1, text='days')
-        lbl_days.grid(row=4, column=3, columnspan=2, padx=5, sticky='w')
 
         def grab_date():
             def cal_date():
@@ -266,7 +293,7 @@ class PageOne(tk.Frame):
                 cal_frame.grab_set()
 
         lbl_strt_date = ttk.Label(frame1, text='Select start date: ')
-        lbl_strt_date.grid(row=5, column=0, columnspan=2, padx=5, sticky='w')
+        lbl_strt_date.grid(row=4, column=0, columnspan=2, padx=5, sticky='w')
 
         entry_date = PlaceholderEntry(
             frame1,
@@ -274,14 +301,28 @@ class PageOne(tk.Frame):
             style="TEntry",
             placeholder_style="Placeholder.TEntry"
         )
-        entry_date.grid(row=5, column=2, columnspan=2)
+        entry_date.grid(row=4, column=2, columnspan=2)
 
         date_button = ttk.Button(
             frame1, text='date', command=grab_date)
-        date_button.grid(row=5, column=4, padx=5, sticky='w')
+        date_button.grid(row=4, column=4, padx=5, sticky='w')
 
-        def validate_input():
+        lbl_dur = ttk.Label(frame1, text='Search period: ')
+        lbl_dur.grid(row=5, column=0, padx=5, pady=10,
+                     columnspan=2, sticky='w')
 
+        entry_dur = ttk.Entry(frame1)
+        entry_dur.grid(row=5, column=2)
+        entry_dur.insert("0", 15)
+
+        lbl_days = ttk.Label(frame1, text='days')
+        lbl_days.grid(row=5, column=3, columnspan=2, padx=5, sticky='w')
+
+        table_page = 0
+
+        def validate_input(button):
+
+            submit, after, before = 0, 1, -1
             valid = True
 
             latitude = entry_lat.get().strip()
@@ -370,8 +411,49 @@ class PageOne(tk.Frame):
                 labelvar.set(show_error)
             else:
                 labelvar.set('')
-                coord.get_observer_data(date, longitude, latitude, duration=int(
-                    duration), horizon=int(horizon))
+                for item in frame2.winfo_children():
+                    item.destroy()
+
+                data = coord.get_observer_data(date, longitude, latitude, duration=int(
+                    duration), horizon=int(horizon), passtype=pass_type)
+                # for i in range(len(data) // 13):
+                #     table_pages
+                #     table_pages.append(i)
+                global table_page
+
+                if button == submit:
+                    table_page = 0
+                elif button == after:
+                    table_page = table_page + 1
+                elif button == before:
+                    table_page = table_page - 1
+
+                _before.grid(row=0, column=0, sticky='e', padx=10)
+                _next.grid(row=0, column=1, sticky='w', padx=10)
+
+                if len(data) > (table_page + 1) * 15 and table_page > 0:
+                    print('both next and before')
+                    if not _next:
+                        _next.grid(row=0, column=1, sticky='w', padx=10)
+                    elif not _before:
+                        _before.grid(row=0, column=0, sticky='e', padx=10)
+                elif not (len(data) > (table_page + 1) * 15) and table_page > 0:
+                    print('before no next')
+                    if _next:
+                        _next.grid_forget()
+                    elif not _before:
+                        _before.grid(row=0, column=0, sticky='e', padx=10)
+                elif len(data) > (table_page + 1) * 15 and not table_page > 0:
+                    print('next but no before')
+                    if not _next:
+                        _next.grid(row=0, column=1, sticky='w', padx=10)
+                    elif _before:
+                        _before.grid_forget()
+                else:
+                    _next.grid_forget()
+                    _before.grid_forget()
+
+                tkTable(frame2, data, table_page)
 
         labelvar = tk.StringVar()
         labelvar.set("")
@@ -381,18 +463,26 @@ class PageOne(tk.Frame):
                        padx=5, pady=10, sticky='w')
 
         submit_button = ttk.Button(
-            frame1, text='Submit', command=validate_input)
+            frame1, text='Submit', command=lambda: validate_input(0))
         submit_button.grid(row=8, column=2, columnspan=2,
                            rowspan=5, padx=5, pady=5, sticky='s')
 
         frame2 = tk.Frame(self, parent)
         frame2.grid(row=0, column=1, sticky="nsew")
 
-        passvar = tk.StringVar()
-        passvar.set("")
-        lbl_passes = ttk.Label(
-            frame2, textvariable=passvar, foreground='blue')
-        lbl_passes.pack()
+        frame2.columnconfigure((0, 1, 2, 3, 4, 5, 6, 7, 8, 9), weight=1)
+
+        _frame = tk.Frame(self, parent)
+        _frame.grid(
+            row=1, column=1, sticky='nsew')
+
+        _frame.columnconfigure((0, 1), weight=1, uniform='f')
+
+        _before = tk.Button(_frame, text='<<',
+                            command=lambda: validate_input(-1))
+        # _before.grid(row=0, column=0, sticky='e', padx=10)
+        _next = tk.Button(_frame, text='>>', command=lambda: validate_input(1))
+        # _next.grid(row=0, column=1, sticky='w', padx=10)
 
 
 class MessageWindow(tk.Toplevel):
@@ -448,7 +538,61 @@ class PlaceholderEntry(ttk.Entry):
         self["style"] = self.style
 
 
+class tkTable():
+
+    def __init__(self, parent, lst, page, *args, **kwargs):
+
+        self.lst = lst
+        self.parent = parent
+        self.page = page
+
+        table_heading = ['Date', 'Rise time', 'Rise azm',
+                         'Rise alt', 'Max time', 'Max alt', 'Set time', 'Set azm', 'Set alt', 'Type']
+        if lst:
+            ttk.Label(parent, text='Time').grid(row=0, column=1)
+            ttk.Separator(parent, orient=tk.VERTICAL).grid(
+                row=0, column=2, sticky='ns')
+            ttk.Label(parent, text='Start').grid(
+                row=0, column=3, columnspan=6)
+            ttk.Separator(parent, orient=tk.VERTICAL).grid(
+                row=0, column=8, sticky='ns')
+            ttk.Label(parent, text='Maximum').grid(
+                row=0, column=9, columnspan=4)
+            ttk.Separator(parent, orient=tk.VERTICAL).grid(
+                row=0, column=12, sticky='ns')
+            ttk.Label(parent, text='End').grid(
+                row=0, column=13, columnspan=6)
+            ttk.Separator(parent, orient=tk.VERTICAL).grid(
+                row=0, column=18, sticky='ns')
+            total_rows = len(lst)
+            total_columns = len(lst[0])
+
+            start = 15 * page
+            if (15 * (page + 1)) > len(lst):
+                end = len(lst)
+            else:
+                end = 15 * (page + 1)
+            # code for creating table
+            for i in range(start, end):
+                for j in range(total_columns):
+                    if (i % 15) == 0:
+                        ttk.Label(parent, text=table_heading[j]).grid(row=2 * i + 2, column=2 * j + 1, padx=2,
+                                                                      pady=2)
+                        ttk.Separator(parent, orient=tk.VERTICAL).grid(
+                            row=2 * i + 2, column=2 * j + 2, rowspan=2 * total_rows + 2, sticky='ns', padx=0)
+                    if j == 0:
+                        ttk.Separator(parent, orient=tk.HORIZONTAL).grid(
+                            row=2 * i + 3, column=2 * j + 1, columnspan=2 * total_columns + 2, sticky='ew')
+                    item = lst[i][j]
+                    self.param = ttk.Label(parent, text=item)
+                    self.param.grid(row=2 * i + 4, column=2 * j + 1, padx=2,
+                                    pady=2)
+        else:
+            ttk.Label(parent, text='No pass available').grid(row=0, column=0)
+
+
 app = projIss()
-app.geometry("800x440")
+app.geometry("830x450")
+app.resizable(False, False)
 ani = Animation.FuncAnimation(fig, animate, interval=10000)
 app.mainloop()

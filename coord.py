@@ -8,11 +8,11 @@ lons, lats = list(), list()
 
 now = datetime.datetime.utcnow()
 # fetch iss tle data
-req_tle = requests.get('https://www.celestrak.com/NORAD/elements/stations.txt')
-response = req_tle.text
-line1, line2, line3 = response.split('\n')[0], response.split('\n')[
-    1], response.split('\n')[2]
-# line1, line2, line3 = "ISS (ZARYA)", "1 25544U 98067A   20175.48257715  .00000141  00000-0  10586-4 0  9994", "2 25544  51.6448 317.3056 0002550  78.0964 353.5204 15.49453541232999"
+# req_tle = requests.get('https://www.celestrak.com/NORAD/elements/stations.txt')
+# response = req_tle.text
+# line1, line2, line3 = response.split('\n')[0], response.split('\n')[
+#     1], response.split('\n')[2]
+line1, line2, line3 = "ISS (ZARYA)", "1 25544U 98067A   20202.20401620 -.00000117  00000-0  59461-5 0  9991", "2 25544  51.6421 185.0514 0001366 134.5482  43.1038 15.49516517237137"
 
 # read tle data
 iss = ephem.readtle(line1, line2, line3)
@@ -125,7 +125,7 @@ def get_iss_data():
     pass
 
 
-def get_observer_data(start_date, lon, lat, duration=10, horizon=10):
+def get_observer_data(start_date, lon, lat, duration=10, horizon=10, passtype='visible'):
     """calculates iss visible and daylight pass details
 
     Keyword arguments:
@@ -201,7 +201,7 @@ def get_observer_data(start_date, lon, lat, duration=10, horizon=10):
             eclipse.append(info[4])
         # adjust pass data according to new calculated time for
         # visible pass
-        if eclipse:
+        if len(eclipse) > 1:
             if pass_type == 'visible':
                 if max_time > eclipse[-1]:
                     max_time = eclipse[-1]
@@ -229,7 +229,11 @@ def get_observer_data(start_date, lon, lat, duration=10, horizon=10):
         # look for next pass from the end of this pass
         strt_date = info[4]
 
-    [print(x) for x in passes if x[0] == 'visible']
+    # [print(x) for x in passes if x[0] == 'visible']
+    if passtype == 'both':
+        return passes
+    else:
+        return [x for x in passes if x[-1] == passtype]
 
 
 def get_azimuth(az):
@@ -256,14 +260,19 @@ def format_pass_data(ptype, rise_t, rise_az, rise_alt, max_t, max_alt, set_t, se
     degree_sign = u"\N{DEGREE SIGN}"
 
     pass_type = ptype
-    date = (str(ephem.localtime(rise_t))).split(' ')[0]
-    rise_time = (str(ephem.localtime(rise_t))).split(' ')[1][:8]
+    # date = (str(ephem.localtime(rise_t))).split(' ')[0].strip()
+    date = ephem.localtime(rise_t).strftime("%d %b, %Y")
+    rise_time = (str(ephem.localtime(rise_t))).split(' ')[1][:8].strip()
     rise_azimuth = rise_az
-    rise_altitude = str(int(57.295 * rise_alt)) + degree_sign
+    if ptype == 'visible':
+        rise_altitude = str(int(57.295 * rise_alt)) + degree_sign
+        set_altitude = str(int(57.295 * set_alt)) + degree_sign
+    else:
+        rise_altitude = str(rise_alt) + degree_sign
+        set_altitude = str(set_alt) + degree_sign
     max_time = (str(ephem.localtime(max_t))).split(' ')[1][:8]
     max_altitude = str(int(57.295 * max_alt)) + degree_sign
     set_time = (str(ephem.localtime(set_t))).split(' ')[1][:8]
     set_azimuth = set_az
-    set_altitude = str(int(57.295 * set_alt)) + degree_sign
 
-    return (ptype, date, rise_time, rise_azimuth, rise_altitude, max_time, max_altitude, set_time, set_azimuth, set_altitude)
+    return (date, rise_time, rise_azimuth, rise_altitude, max_time, max_altitude, set_time, set_azimuth, set_altitude, ptype)
